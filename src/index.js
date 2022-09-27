@@ -18,52 +18,59 @@ refs.input.addEventListener(
     const country = fromInput.trim();
 
     if (country.length === 0) {
-      return clear();
+       clear();
+       return
     }
     fetchCountries(country)
-      // .then(markup)
-      .then((response, err) => {
+      .then((response) => {
         if (response.length > 10) {
-          return Notiflix.Notify.info(
+          clear();
+          Notiflix.Notify.info(
             'Too many matches found. Please enter a more specific name'
           );
+   
+        } if (response.length < 10 && response.length > 2) {
+          clear();
+        
+          const markup = markupTitle(response);
+          refs.countryList.insertAdjacentHTML('afterbegin', markup)
         }
-        clear(response);
-
-        return markup(response);
-      })
-
-      .then(response => {
-        if (response === undefined) {
-          return;
+        if(response.length === 1){
+          clear();
+          const markupOne =  markup(response);
+          refs.countryInfo.insertAdjacentHTML('afterbegin', markupOne)
         }
-        renderMarkup(response);
+       
       })
+      // .then(response => {
+      //   if (response === undefined) {
+      //     return;
+      //   }
+      //   renderMarkup(response);
+      // })
 
       .catch(err =>
-        Notiflix.Notify.failure('Oops, there is no country with that name')
+        {clear();
+        Notiflix.Notify.failure('Oops, there is no country with that name')}
       );
   }, DEBOUNCE_DELAY)
 );
 
 function clear() {
   refs.countryInfo.innerHTML = ' ';
+  refs.countryList.innerHTML = ' ';
 }
 
 function markup(countries) {
   return countries
     .map(
       (
-        {
-          name: official,
-          capital,
-          population,
-          flags: { svg },
-          languages,
-        },
+        { name: official, capital, population, flags: { svg }, languages },
         i
       ) => {
-      const ln = languages.map(({name})=>{console.log(name); return name;})
+        const ln = languages.map(({ name }) => {
+          return name;
+        });
 
         return `<div  style="display:flex; align-items: center; gap: 15px ">
                <img src="${svg}" alt="${official}" height="60" "> 
@@ -79,11 +86,14 @@ function markup(countries) {
     .join(' ');
 }
 
-('Oops, there is no country with that name');
-
-function renderMarkup(country) {
-  const markup = country;
-  return refs.countryInfo.insertAdjacentHTML('afterbegin', country);
+function markupTitle(countries) {
+  return countries
+    .map(({ name: official, flags: { svg } }, i) => {
+      return `<div  style="display:flex; align-items: center; gap: 15px ">
+               <img src="${svg}" alt="${official}" height="60" "> 
+                <h1>${official}</h1>
+                          </div>
+                           `;
+    })
+    .join(' ');
 }
-
-// "Too many matches found. Please enter a more specific name.
